@@ -33,15 +33,17 @@ class BooksApp extends React.Component {
   }
 
   componentWillMount(){
-    BooksAPI.getAll().then((books) => this.setState(() => {
-      this.state.categories.forEach(categorie => {
+    let updatedCategories = this.state.categories;
+    BooksAPI.getAll().then((books) => {
+      updatedCategories.forEach(categorie => {
         books.forEach(book => {
-          if (book.shelf.toUpperCase() === categorie.id.toUpperCase()) {
-              categorie.books.push(book);
-          }        
+          if (book.shelf.toUpperCase() == categorie.id.toUpperCase()) {
+            categorie.books.push(book);
+          }
         });
       });
-    }))
+      this.setState({ categories: updatedCategories })
+    })
   }
 
   createBookSection(){
@@ -53,7 +55,7 @@ class BooksApp extends React.Component {
               <li>
                 <div className="book">
                   <div className="book-top">
-                    <div className="book-cover" ></div>
+                    <div className="book-cover" style={{color:'red'}}></div>
                     <div className="book-shelf-changer">
                       <select>
                         <option value="move" disabled>Move to...</option>
@@ -64,8 +66,8 @@ class BooksApp extends React.Component {
                       </select>
                     </div>
                   </div>
-                  <div className="book-title">{book.bookTitle}</div>
-                  <div className="book-authors">{book.bookAuthor}</div>
+                  <div className="book-title">{book.title}</div>
+                  <div className="book-authors">{book.authors}</div>
                 </div>
               </li>
         );
