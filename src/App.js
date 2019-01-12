@@ -1,7 +1,8 @@
 import React from 'react'
-// import * as BooksAPI from './BooksAPI'
 import './App.css'
 import * as BooksAPI from './BooksAPI';
+import BookList from './BookList'
+import $ from 'jquery'
 
 class BooksApp extends React.Component {
   state = {
@@ -32,18 +33,20 @@ class BooksApp extends React.Component {
     ]
   }
 
-  handleClick(event){
-    event.preventDefault();
+  changeShelf = (book, shelf) => {
+
+    BooksAPI.update(book, shelf).then(() => {
+
+      this.loadBooks();
+
+    })
   }
 
-  componentDidMount(){
-    
-  }
-
-  componentWillMount(){
+  loadBooks(){
     let updatedCategories = this.state.categories;
     BooksAPI.getAll().then((books) => {
       updatedCategories.forEach(categorie => {
+        categorie.books = []
         books.forEach(book => {
           if (book.shelf.toUpperCase() === categorie.id.toUpperCase()) {
             categorie.books.push(book);
@@ -52,6 +55,34 @@ class BooksApp extends React.Component {
       });
       this.setState({ categories: updatedCategories })
     })
+  }
+
+  componentWillMount(){
+    this.loadBooks();
+  }
+
+  searchBooks(searchText){
+    BooksAPI.search(searchText).then((books) => {
+
+      this.setState({books:books})
+
+    })
+  }
+
+  printResultSearchList(){
+    let bookResultSection = [];
+    this.state.books.forEach(book => {
+      let authors = []
+      book.authors.forEach(author => {
+        authors.push(
+          <span>{author}<br /></span>
+        )
+      });
+      bookResultSection.push(
+        <BookList book={book} authors={authors} changeShelf={this.changeShelf} />
+      )
+    })
+    return bookResultSection
   }
 
   createBookSection(){
@@ -67,24 +98,7 @@ class BooksApp extends React.Component {
         });
         
         bookSection.push(
-              <li key={book.id}>
-                <div className="book">
-                  <div className="book-top">
-                    <div className="book-cover" style={{width: 128, height: 192, backgroundImage:`url("${book.imageLinks.thumbnail}")`}}></div>
-                    <div className="book-shelf-changer">
-                      <select>
-                        <option value="move" disabled>Move to...</option>
-                        <option value="currentlyReading">Currently Reading</option>
-                        <option value="wantToRead">Want to Read</option>
-                        <option value="read">Read</option>
-                        <option value="none">None</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="book-title">{book.title}</div>
-                  <div className="book-authors">{authors}</div>
-                </div>
-              </li>
+            <BookList book={book} authors={authors} changeShelf={this.changeShelf}/>
         );
       });
         categorieSection.push(
@@ -116,12 +130,14 @@ class BooksApp extends React.Component {
                   However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
                   you don't find a specific author or title. Every search is limited by search terms.
                 */}
-                <input type="text" placeholder="Search by title or author"/>
+                <input type="text" placeholder="Search by title or author" onKeyUp={event => this.searchBooks(event.target.value)}/>
 
               </div>
             </div>
             <div className="search-books-results">
-              <ol className="books-grid"></ol>
+              <ol className="books-grid">
+                {this.printResultSearchList()}
+              </ol>
             </div>
           </div>
         ) : (
