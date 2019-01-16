@@ -2,7 +2,6 @@ import React from 'react'
 import './App.css'
 import * as BooksAPI from './BooksAPI';
 import BookList from './BookList'
-import $ from 'jquery'
 
 class BooksApp extends React.Component {
   state = {
@@ -91,14 +90,17 @@ class BooksApp extends React.Component {
       let bookSection = [];
       categorie.books.forEach(book => {
         let authors = []
-        book.authors.forEach(author => {
+        let authorsName = book.authors.map(
+          text => text.charAt(0).toLowerCase() + text.slice(1).replace(/\s+/g, "")
+        );
+        authorsName.forEach((name, index) => {
           authors.push(
-            <span>{author}<br /></span> 
+            <span key={name[index]}>{name}<br /></span> 
           )
         });
         
         bookSection.push(
-            <BookList book={book} authors={authors} changeShelf={this.changeShelf}/>
+            <BookList book={book} authors={authors} changeShelf={this.changeShelf} key={book.id}/>
         );
       });
         categorieSection.push(
