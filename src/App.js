@@ -4,38 +4,60 @@ import * as BooksAPI from './BooksAPI';
 import BookList from './BookList'
 
 class BooksApp extends React.Component {
-  state = {
-    /**
-     * TODO: Instead of using this state variable to keep track of which page
-     * we're on, use the URL in the browser's address bar. This will ensure that
-     * users can use the browser's back and forward buttons to navigate between
-     * pages, as well as provide a good URL they can bookmark and share.
-     */
-    showSearchPage: false,
-    books:[],
-    categories: [
-      {
-        id:'currentlyReading',
-        categorieName: 'Currently Reading',
-        books:[]
-      },
-      {
-        id:'wantToRead',
-        categorieName: 'Want to Read',
-        books:[]
-      },
-      {
-        id:'read',
-        categorieName: 'Read',
-        books:[]
-      }
-    ]
-  }
 
+  constructor(props){
+     super(props);
+     this.bookGrid = React.createRef();
+     this.state = {
+      /**
+       * TODO: Instead of using this state variable to keep track of which page
+       * we're on, use the URL in the browser's address bar. This will ensure that
+       * users can use the browser's back and forward buttons to navigate between
+       * pages, as well as provide a good URL they can bookmark and share.
+       */
+      showSearchPage: false,
+      bookSearchList: [],
+      books:[],
+      categories: [
+        {
+          id:'currentlyReading',
+          categorieName: 'Currently Reading',
+          books:[]
+        },
+        {
+          id:'wantToRead',
+          categorieName: 'Want to Read',
+          books:[]
+        },
+        {
+          id:'read',
+          categorieName: 'Read',
+          books:[]
+        },
+        {
+          id:'none',
+          categorieName: 'None',
+          books:[]
+        }
+
+      ]
+    }
+  
+  }
+  
+  
   changeShelf = (book, shelf) => {
 
     BooksAPI.update(book, shelf).then(() => {
-
+      let booksOnSearchList = this.state.books;
+      booksOnSearchList.forEach(bookElem => {
+          if (bookElem.id === book.id) {
+            bookElem.shelf = shelf
+          }
+      });
+      
+      this.setState({books: booksOnSearchList})
+      //this.checkShelf(this.state.books)
       this.loadBooks();
 
     })
@@ -60,58 +82,107 @@ class BooksApp extends React.Component {
     this.loadBooks();
   }
 
+  checkShelf = list => {
+    // Mapeia lista e retorna um novo array
+    return list.map(book => {
+      // Procura nos livros que ja estao estao na estantes
+      // um livro igual ao atualmente sendo selecionado no loop
+      let myBook
+      this.state.categories.forEach(categorie => {
+        categorie.books.forEach(element => {
+            if (element.id === book.id) {
+              myBook = element
+            }
+        });
+        //myBook = categorie.books.find(el => el.id === book.id)
+      });
+      
+
+      // Se for achado, define shelf deste livro
+      if (myBook) {
+        book.shelf = myBook.shelf;
+      }else{
+        book.shelf = 'none'
+      }
+
+      // Retorna o livro pra ser adicionado na nova array do map
+      return book;
+    });
+  };
+
   searchBooks(searchText){
-    BooksAPI.search(searchText).then((books) => {
+    BooksAPI.search(searchText).then((queryBooks) => {
+      if (!searchText) {
+        this.setState({ books: [] });
+        return;
+      }
 
-      this.setState({books:books})
-
+      // Se queryBooks n eh undefined e nao possui a propriedade error
+      if (queryBooks && !queryBooks.error) {
+        this.checkShelf(queryBooks);
+        this.setState({books:queryBooks})
+        this.setState({bookSearchList: this.printResultSearchList()})
+      }
+      
+      
     })
+  }
+
+  getBookAuthors(book){
+    let authors = []
+    let authorsName = []
+    if (book.authors !== undefined) {
+        authorsName = book.authors.map(
+        text => text.charAt(0).toLowerCase() + text.slice(1).replace(/\s+/g, "")
+      );  
+    } else{
+      authorsName[0] = 'Not specified'
+    }
+    
+    authorsName.forEach((name, index) => {
+      authors.push(
+        <span key={name[index]}>{name}<br /></span>
+      )
+    });
+    return authors
   }
 
   printResultSearchList(){
     let bookResultSection = [];
-    this.state.books.forEach(book => {
-      let authors = []
-      book.authors.forEach(author => {
-        authors.push(
-          <span>{author}<br /></span>
+    if (this.state.books.length > 0) {
+      this.state.books.forEach(book => {
+        bookResultSection.push(
+          <BookList book={book} authors={this.getBookAuthors(book)} changeShelf={this.changeShelf} key={book.id} />
         )
-      });
-      bookResultSection.push(
-        <BookList book={book} authors={authors} changeShelf={this.changeShelf} />
-      )
-    })
+      })
+    }
+    
     return bookResultSection
   }
+
+  
 
   createBookSection(){
     let categorieSection =[];
     this.state.categories.forEach(categorie => {
       let bookSection = [];
       categorie.books.forEach(book => {
-        let authors = []
-        let authorsName = book.authors.map(
-          text => text.charAt(0).toLowerCase() + text.slice(1).replace(/\s+/g, "")
-        );
-        authorsName.forEach((name, index) => {
-          authors.push(
-            <span key={name[index]}>{name}<br /></span> 
-          )
-        });
-        
         bookSection.push(
-            <BookList book={book} authors={authors} changeShelf={this.changeShelf} key={book.id}/>
+            <BookList book={book} authors={this.getBookAuthors(book)} changeShelf={this.changeShelf} key={book.id}/>
         );
       });
-        categorieSection.push(
-          <div className="bookshelf" key={categorie.id}>
-            <h2 className="bookshelf-title">{categorie.categorieName}</h2>
-            <div className="bookshelf-books">
-              <ol className="books-grid">
-                {bookSection}
-              </ol>
-            </div>
-          </div>)  
+        if (categorie.id !== 'none') {
+          categorieSection.push(
+            <div className="bookshelf" key={categorie.id}>
+              <h2 className="bookshelf-title">{categorie.categorieName}</h2>
+              <div className="bookshelf-books">
+                <ol className="books-grid">
+                  {bookSection}
+                </ol>
+              </div>
+            </div>)  
+        }
+        
       });  
     return categorieSection;
   }
@@ -137,8 +208,8 @@ class BooksApp extends React.Component {
               </div>
             </div>
             <div className="search-books-results">
-              <ol className="books-grid">
-                {this.printResultSearchList()}
+              <ol className="books-grid" ref={this.bookGrid}>
+                {this.state.bookSearchList}
               </ol>
             </div>
           </div>

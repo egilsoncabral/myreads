@@ -58,8 +58,9 @@ class BookList extends React.Component{
                                     value={this.shelves[index]}
                                     checked={this.shelves[index] === this.props.book.shelf}
                                     onClick={(event) => {
-                                        this.props.changeShelf(this.props.book, event.target.getAttribute("value"))
                                         this.triggerOptions();
+                                        this.props.changeShelf(this.props.book, event.target.getAttribute("value"))
+                                        
                                     }}>
                                     {text}
                                 </Option>
