@@ -55,7 +55,6 @@ function Options({ book, changeShelf, texts, open, trigger }) {
           onClick={e => {
             changeShelf(book, e.target.getAttribute("value"));
             trigger();
-            console.log(e.target.getAttribute("value"));
           }}
         >
           {text}
