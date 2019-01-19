@@ -9,16 +9,17 @@ class SearchBook extends React.Component{
     state = {
         books: [],
         bookSearchList: [],
-        categories: this.props.categories
     }
 
-
+    getShelfId(shelfName) {
+      return shelfName.charAt(0).toLowerCase() + shelfName.slice(1).replace(/\s+/g, "")
+    }
     checkShelf = list => {
         return list.map(book => {
           // Procura nos livros que ja estao estao na estantes
           // um livro igual ao atualmente sendo selecionado no loop
           let myBook
-          this.state.categories.forEach(categorie => {
+          this.props.categories.forEach(categorie => {
             categorie.books.forEach(element => {
                 if (element.id === book.id) {
                   myBook = element
@@ -59,7 +60,7 @@ class SearchBook extends React.Component{
         if (this.state.books.length > 0) {
           this.state.books.forEach(book => {
             bookResultSection.push(
-              <BookList book={book} authors={this.props.authors(book)} changeShelf={this.changeShelf} key={book.id} />
+              <BookList book={book} changeShelf={this.changeShelf} key={book.id} />
             )
           })
         }
