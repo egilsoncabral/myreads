@@ -5,37 +5,19 @@ import BookSection from './BookSection'
 import { Link } from 'react-router-dom'
 class Home extends React.Component {
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-
-      books: [],
-    }
-
-  }
-
   changeShelf = (book, shelf) => {
 
     BooksAPI.update(book, shelf).then(() => {
-      this.loadBooks();
-
-    })
-  }
-
-  loadBooks() {
-    BooksAPI.getAll().then((books) => {
-
-      this.setState({ books: books })
+      this.props.loadBooks();
     })
   }
 
   componentWillMount() {
-    this.loadBooks();
+    this.props.loadBooks();
   }
 
   getBooksByShelf(categorie) {
-    return this.state.books.filter(book => book.shelf === categorie)
+    return this.props.books.filter(book => book.shelf === categorie)
   }
 
   getShelfId(shelfName) {
