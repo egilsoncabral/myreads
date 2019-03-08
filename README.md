@@ -1,6 +1,5 @@
-# My Reads - Nanodegree Udacity
-
-This project, is part of the training Nanodegree of Udacity. The goal of this project is to create an app which you will show the books on its respective shelfs and you will be able to select, search and organize its by 'Currently Reading', 'Want to Read' and 'Read' categories.
+# My Reads
+The goal of this project is to create an app which you will show the books on its respective shelfs and you will be able to select, search and organize its by 'Currently Reading', 'Want to Read' and 'Read' categories.
 
 
 ## Build/Usage
